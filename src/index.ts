@@ -23,7 +23,6 @@ const server = new McpServer({
 
 // Define resources
 server.resource('boards', 'trello://boards', async (uri) => {
-	const fetch = (await import('node-fetch')).default;
 	const response = await fetch(
 		`https://api.trello.com/1/members/me/boards?key=${trelloApiKey}&token=${trelloApiToken}`
 	);
@@ -42,7 +41,6 @@ server.resource(
 	'lists',
 	new ResourceTemplate('trello://boards/{boardId}/lists', { list: undefined }),
 	async (uri, { boardId }) => {
-		const fetch = (await import('node-fetch')).default;
 		const response = await fetch(
 			`https://api.trello.com/1/boards/${boardId}/lists?key=${trelloApiKey}&token=${trelloApiToken}`
 		);
@@ -62,7 +60,6 @@ server.resource(
 	'cards',
 	new ResourceTemplate('trello://lists/{listId}/cards', { list: undefined }),
 	async (uri, { listId }) => {
-		const fetch = (await import('node-fetch')).default;
 		const response = await fetch(
 			`https://api.trello.com/1/lists/${listId}/cards?key=${trelloApiKey}&token=${trelloApiToken}`
 		);
@@ -88,7 +85,6 @@ server.tool(
 	},
 	async ({ name, description, listId }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const response = await fetch(
 				`https://api.trello.com/1/cards?key=${trelloApiKey}&token=${trelloApiToken}`,
 				{
@@ -129,7 +125,6 @@ server.tool(
 
 server.tool('get-boards', {}, async () => {
 	try {
-		const fetch = (await import('node-fetch')).default;
 		const response = await fetch(
 			`https://api.trello.com/1/members/me/boards?key=${trelloApiKey}&token=${trelloApiToken}`
 		);
@@ -162,7 +157,6 @@ server.tool(
 	},
 	async ({ boardId }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const response = await fetch(
 				`https://api.trello.com/1/boards/${boardId}/lists?key=${trelloApiKey}&token=${trelloApiToken}`
 			);
@@ -202,7 +196,6 @@ server.tool(
 	},
 	async ({ cards }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const results = await Promise.all(
 				cards.map(async (card) => {
 					const response = await fetch(
@@ -254,7 +247,6 @@ server.tool(
 	},
 	async ({ cardId, listId, position = 'bottom' }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const response = await fetch(
 				`https://api.trello.com/1/cards/${cardId}?key=${trelloApiKey}&token=${trelloApiToken}`,
 				{
@@ -299,7 +291,6 @@ server.tool(
 	},
 	async ({ cardId, text }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const response = await fetch(
 				`https://api.trello.com/1/cards/${cardId}/actions/comments?key=${trelloApiKey}&token=${trelloApiToken}`,
 				{
@@ -346,7 +337,6 @@ server.tool(
 	},
 	async ({ boardId, name, color }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const response = await fetch(
 				`https://api.trello.com/1/labels?key=${trelloApiKey}&token=${trelloApiToken}`,
 				{
@@ -392,7 +382,6 @@ server.tool(
 	},
 	async ({ cardId, labelId }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const response = await fetch(
 				`https://api.trello.com/1/cards/${cardId}/idLabels?key=${trelloApiKey}&token=${trelloApiToken}`,
 				{
@@ -441,7 +430,6 @@ server.tool(
 	},
 	async ({ cards }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const results = await Promise.all(
 				cards.map(async (card) => {
 					const response = await fetch(
@@ -494,7 +482,6 @@ server.tool(
 	},
 	async ({ comments }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const results = await Promise.all(
 				comments.map(async (comment) => {
 					const response = await fetch(
@@ -560,7 +547,6 @@ server.tool(
 	},
 	async ({ labels }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const results = await Promise.all(
 				labels.map(async (label) => {
 					const response = await fetch(
@@ -614,7 +600,6 @@ server.tool(
 	},
 	async ({ items }) => {
 		try {
-			const fetch = (await import('node-fetch')).default;
 			const results = await Promise.all(
 				items.map(async (item) => {
 					const response = await fetch(
@@ -674,7 +659,6 @@ server.tool(
 				};
 			}
 
-			const fetch = (await import('node-fetch')).default;
 			const url = new URL(`https://api.trello.com/1/lists/${listId}/cards`);
 			url.searchParams.append('key', trelloApiKey);
 			url.searchParams.append('token', trelloApiToken);
@@ -738,7 +722,6 @@ server.tool(
 				};
 			}
 
-			const fetch = (await import('node-fetch')).default;
 			const response = await fetch(
 				`https://api.trello.com/1/cards/${cardId}?key=${trelloApiKey}&token=${trelloApiToken}`,
 				{
@@ -793,7 +776,6 @@ server.tool(
 				};
 			}
 
-			const fetch = (await import('node-fetch')).default;
 			const results = await Promise.all(
 				cardIds.map(async (cardId) => {
 					const response = await fetch(
