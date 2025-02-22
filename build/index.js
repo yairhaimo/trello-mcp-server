@@ -1,25 +1,28 @@
-import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import express from 'express';
-import { z } from 'zod';
-dotenv.config();
-const app = express();
-const port = process.env.PORT || 3123;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const mcp_js_1 = require("@modelcontextprotocol/sdk/server/mcp.js");
+const stdio_js_1 = require("@modelcontextprotocol/sdk/server/stdio.js");
+const cors_1 = __importDefault(require("cors"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const express_1 = __importDefault(require("express"));
+const zod_1 = require("zod");
+dotenv_1.default.config();
+const app = (0, express_1.default)();
 const trelloApiKey = process.env.TRELLO_API_KEY;
 const trelloApiToken = process.env.TRELLO_API_TOKEN;
 // Enable CORS and JSON parsing
-app.use(cors());
-app.use(express.json());
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
 // Create an MCP server
-const server = new McpServer({
+const server = new mcp_js_1.McpServer({
     name: 'Trello MCP Server',
     version: '1.0.0',
 });
 // Define resources
 server.resource('boards', 'trello://boards', async (uri) => {
-    const fetch = (await import('node-fetch')).default;
     const response = await fetch(`https://api.trello.com/1/members/me/boards?key=${trelloApiKey}&token=${trelloApiToken}`);
     const data = await response.json();
     return {
@@ -31,8 +34,7 @@ server.resource('boards', 'trello://boards', async (uri) => {
         ],
     };
 });
-server.resource('lists', new ResourceTemplate('trello://boards/{boardId}/lists', { list: undefined }), async (uri, { boardId }) => {
-    const fetch = (await import('node-fetch')).default;
+server.resource('lists', new mcp_js_1.ResourceTemplate('trello://boards/{boardId}/lists', { list: undefined }), async (uri, { boardId }) => {
     const response = await fetch(`https://api.trello.com/1/boards/${boardId}/lists?key=${trelloApiKey}&token=${trelloApiToken}`);
     const data = await response.json();
     return {
@@ -44,8 +46,7 @@ server.resource('lists', new ResourceTemplate('trello://boards/{boardId}/lists',
         ],
     };
 });
-server.resource('cards', new ResourceTemplate('trello://lists/{listId}/cards', { list: undefined }), async (uri, { listId }) => {
-    const fetch = (await import('node-fetch')).default;
+server.resource('cards', new mcp_js_1.ResourceTemplate('trello://lists/{listId}/cards', { list: undefined }), async (uri, { listId }) => {
     const response = await fetch(`https://api.trello.com/1/lists/${listId}/cards?key=${trelloApiKey}&token=${trelloApiToken}`);
     const data = await response.json();
     return {
@@ -59,12 +60,11 @@ server.resource('cards', new ResourceTemplate('trello://lists/{listId}/cards', {
 });
 // Define tools
 server.tool('create-card', {
-    name: z.string(),
-    description: z.string().optional(),
-    listId: z.string(),
+    name: zod_1.z.string(),
+    description: zod_1.z.string().optional(),
+    listId: zod_1.z.string(),
 }, async ({ name, description, listId }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const response = await fetch(`https://api.trello.com/1/cards?key=${trelloApiKey}&token=${trelloApiToken}`, {
             method: 'POST',
             headers: {
@@ -101,7 +101,6 @@ server.tool('create-card', {
 });
 server.tool('get-boards', {}, async () => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const response = await fetch(`https://api.trello.com/1/members/me/boards?key=${trelloApiKey}&token=${trelloApiToken}`);
         const data = await response.json();
         return {
@@ -126,10 +125,9 @@ server.tool('get-boards', {}, async () => {
     }
 });
 server.tool('get-lists', {
-    boardId: z.string().describe('ID of the Trello board to get lists from'),
+    boardId: zod_1.z.string().describe('ID of the Trello board to get lists from'),
 }, async ({ boardId }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const response = await fetch(`https://api.trello.com/1/boards/${boardId}/lists?key=${trelloApiKey}&token=${trelloApiToken}`);
         const data = await response.json();
         return {
@@ -154,14 +152,13 @@ server.tool('get-lists', {
     }
 });
 server.tool('create-cards', {
-    cards: z.array(z.object({
-        name: z.string(),
-        description: z.string().optional(),
-        listId: z.string(),
+    cards: zod_1.z.array(zod_1.z.object({
+        name: zod_1.z.string(),
+        description: zod_1.z.string().optional(),
+        listId: zod_1.z.string(),
     })),
 }, async ({ cards }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const results = await Promise.all(cards.map(async (card) => {
             const response = await fetch(`https://api.trello.com/1/cards?key=${trelloApiKey}&token=${trelloApiToken}`, {
                 method: 'POST',
@@ -199,12 +196,11 @@ server.tool('create-cards', {
     }
 });
 server.tool('move-card', {
-    cardId: z.string().describe('ID of the card to move'),
-    listId: z.string().describe('ID of the destination list'),
-    position: z.string().optional().describe('Position in the list (e.g. "top", "bottom")'),
+    cardId: zod_1.z.string().describe('ID of the card to move'),
+    listId: zod_1.z.string().describe('ID of the destination list'),
+    position: zod_1.z.string().optional().describe('Position in the list (e.g. "top", "bottom")'),
 }, async ({ cardId, listId, position = 'bottom' }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const response = await fetch(`https://api.trello.com/1/cards/${cardId}?key=${trelloApiKey}&token=${trelloApiToken}`, {
             method: 'PUT',
             headers: {
@@ -238,11 +234,10 @@ server.tool('move-card', {
     }
 });
 server.tool('add-comment', {
-    cardId: z.string().describe('ID of the card to comment on'),
-    text: z.string().describe('Comment text'),
+    cardId: zod_1.z.string().describe('ID of the card to comment on'),
+    text: zod_1.z.string().describe('Comment text'),
 }, async ({ cardId, text }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const response = await fetch(`https://api.trello.com/1/cards/${cardId}/actions/comments?key=${trelloApiKey}&token=${trelloApiToken}`, {
             method: 'POST',
             headers: {
@@ -275,14 +270,13 @@ server.tool('add-comment', {
     }
 });
 server.tool('create-label', {
-    boardId: z.string().describe('ID of the board to create the label in'),
-    name: z.string().describe('Name of the label'),
-    color: z
+    boardId: zod_1.z.string().describe('ID of the board to create the label in'),
+    name: zod_1.z.string().describe('Name of the label'),
+    color: zod_1.z
         .enum(['yellow', 'purple', 'blue', 'red', 'green', 'orange', 'black', 'sky', 'pink', 'lime'])
         .describe('Color of the label'),
 }, async ({ boardId, name, color }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const response = await fetch(`https://api.trello.com/1/labels?key=${trelloApiKey}&token=${trelloApiToken}`, {
             method: 'POST',
             headers: {
@@ -317,11 +311,10 @@ server.tool('create-label', {
     }
 });
 server.tool('add-label', {
-    cardId: z.string().describe('ID of the card to add the label to'),
-    labelId: z.string().describe('ID of the label to add'),
+    cardId: zod_1.z.string().describe('ID of the card to add the label to'),
+    labelId: zod_1.z.string().describe('ID of the label to add'),
 }, async ({ cardId, labelId }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const response = await fetch(`https://api.trello.com/1/cards/${cardId}/idLabels?key=${trelloApiKey}&token=${trelloApiToken}`, {
             method: 'POST',
             headers: {
@@ -354,14 +347,13 @@ server.tool('add-label', {
     }
 });
 server.tool('move-cards', {
-    cards: z.array(z.object({
-        cardId: z.string().describe('ID of the card to move'),
-        listId: z.string().describe('ID of the destination list'),
-        position: z.string().optional().describe('Position in the list (e.g. "top", "bottom")'),
+    cards: zod_1.z.array(zod_1.z.object({
+        cardId: zod_1.z.string().describe('ID of the card to move'),
+        listId: zod_1.z.string().describe('ID of the destination list'),
+        position: zod_1.z.string().optional().describe('Position in the list (e.g. "top", "bottom")'),
     })),
 }, async ({ cards }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const results = await Promise.all(cards.map(async (card) => {
             const response = await fetch(`https://api.trello.com/1/cards/${card.cardId}?key=${trelloApiKey}&token=${trelloApiToken}`, {
                 method: 'PUT',
@@ -397,13 +389,12 @@ server.tool('move-cards', {
     }
 });
 server.tool('add-comments', {
-    comments: z.array(z.object({
-        cardId: z.string().describe('ID of the card to comment on'),
-        text: z.string().describe('Comment text'),
+    comments: zod_1.z.array(zod_1.z.object({
+        cardId: zod_1.z.string().describe('ID of the card to comment on'),
+        text: zod_1.z.string().describe('Comment text'),
     })),
 }, async ({ comments }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const results = await Promise.all(comments.map(async (comment) => {
             const response = await fetch(`https://api.trello.com/1/cards/${comment.cardId}/actions/comments?key=${trelloApiKey}&token=${trelloApiToken}`, {
                 method: 'POST',
@@ -438,10 +429,10 @@ server.tool('add-comments', {
     }
 });
 server.tool('create-labels', {
-    labels: z.array(z.object({
-        boardId: z.string().describe('ID of the board to create the label in'),
-        name: z.string().describe('Name of the label'),
-        color: z
+    labels: zod_1.z.array(zod_1.z.object({
+        boardId: zod_1.z.string().describe('ID of the board to create the label in'),
+        name: zod_1.z.string().describe('Name of the label'),
+        color: zod_1.z
             .enum([
             'yellow',
             'purple',
@@ -458,7 +449,6 @@ server.tool('create-labels', {
     })),
 }, async ({ labels }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const results = await Promise.all(labels.map(async (label) => {
             const response = await fetch(`https://api.trello.com/1/labels?key=${trelloApiKey}&token=${trelloApiToken}`, {
                 method: 'POST',
@@ -495,13 +485,12 @@ server.tool('create-labels', {
     }
 });
 server.tool('add-labels', {
-    items: z.array(z.object({
-        cardId: z.string().describe('ID of the card to add the label to'),
-        labelId: z.string().describe('ID of the label to add'),
+    items: zod_1.z.array(zod_1.z.object({
+        cardId: zod_1.z.string().describe('ID of the card to add the label to'),
+        labelId: zod_1.z.string().describe('ID of the label to add'),
     })),
 }, async ({ items }) => {
     try {
-        const fetch = (await import('node-fetch')).default;
         const results = await Promise.all(items.map(async (item) => {
             const response = await fetch(`https://api.trello.com/1/cards/${item.cardId}/idLabels?key=${trelloApiKey}&token=${trelloApiToken}`, {
                 method: 'POST',
@@ -536,8 +525,8 @@ server.tool('add-labels', {
     }
 });
 server.tool('get-tickets-by-list', {
-    listId: z.string().describe('ID of the list to get tickets from'),
-    limit: z.number().optional().describe('Maximum number of cards to return'),
+    listId: zod_1.z.string().describe('ID of the list to get tickets from'),
+    limit: zod_1.z.number().optional().describe('Maximum number of cards to return'),
 }, async ({ listId, limit }) => {
     try {
         if (!trelloApiKey || !trelloApiToken) {
@@ -551,7 +540,6 @@ server.tool('get-tickets-by-list', {
                 isError: true,
             };
         }
-        const fetch = (await import('node-fetch')).default;
         const url = new URL(`https://api.trello.com/1/lists/${listId}/cards`);
         url.searchParams.append('key', trelloApiKey);
         url.searchParams.append('token', trelloApiToken);
@@ -592,6 +580,100 @@ server.tool('get-tickets-by-list', {
         };
     }
 });
+server.tool('archive-card', {
+    cardId: zod_1.z.string().describe('ID of the card to archive'),
+}, async ({ cardId }) => {
+    try {
+        if (!trelloApiKey || !trelloApiToken) {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: 'Trello API credentials are not configured',
+                    },
+                ],
+                isError: true,
+            };
+        }
+        const response = await fetch(`https://api.trello.com/1/cards/${cardId}?key=${trelloApiKey}&token=${trelloApiToken}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                closed: true,
+            }),
+        });
+        const data = await response.json();
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify(data),
+                },
+            ],
+        };
+    }
+    catch (error) {
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Error archiving card: ${error}`,
+                },
+            ],
+            isError: true,
+        };
+    }
+});
+server.tool('archive-cards', {
+    cardIds: zod_1.z.array(zod_1.z.string()).describe('IDs of the cards to archive'),
+}, async ({ cardIds }) => {
+    try {
+        if (!trelloApiKey || !trelloApiToken) {
+            return {
+                content: [
+                    {
+                        type: 'text',
+                        text: 'Trello API credentials are not configured',
+                    },
+                ],
+                isError: true,
+            };
+        }
+        const results = await Promise.all(cardIds.map(async (cardId) => {
+            const response = await fetch(`https://api.trello.com/1/cards/${cardId}?key=${trelloApiKey}&token=${trelloApiToken}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    closed: true,
+                }),
+            });
+            return await response.json();
+        }));
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: JSON.stringify(results),
+                },
+            ],
+        };
+    }
+    catch (error) {
+        return {
+            content: [
+                {
+                    type: 'text',
+                    text: `Error archiving cards: ${error}`,
+                },
+            ],
+            isError: true,
+        };
+    }
+});
 // server.resource(
 // 	'echo',
 // 	new ResourceTemplate('echo://{message}', { list: undefined }),
@@ -619,6 +701,6 @@ server.tool('get-tickets-by-list', {
 // 	],
 // }));
 (async () => {
-    const transport = new StdioServerTransport();
+    const transport = new stdio_js_1.StdioServerTransport();
     await server.connect(transport);
 })();

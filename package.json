@@ -1,11 +1,11 @@
 {
 	"name": "trello-mcp-server",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Trello MCP Server",
 	"main": "build/index.js",
 	"type": "module",
 	"bin": {
-		"trello": "./build/index.js"
+		"trello-mcp-server": "./build/index.js"
 	},
 	"scripts": {
 		"build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\""
